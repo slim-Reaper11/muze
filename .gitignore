@@ -1,0 +1,65 @@
+# Built application files
+*.apk
+*.apks
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java/Kotlin class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+build/
+
+# Gradle files
+.gradle/
+gradlew
+gradlew.bat
+gradle-wrapper.jar
+gradle-wrapper.properties
+
+# Local configuration
+local.properties
+*.keystore
+*.jks
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Android Studio Navigation Editor temp files
+.navigation/
+
+# Android Studio captures
+captures/
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Jetpack Compose specific (build cache)
+*.compose-cache/
+
+# Kotlin/Java compiler cache
+.kotlinc/
+
+# Jetpack Compose preview cache
+*.preview/
+
+# This folder stores local build/cache info, never commit
+# If using the new configuration cache, also ignore:
+.gradle/configuration-cache/
+
+# Misc
+/caches/
