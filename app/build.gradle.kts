@@ -41,6 +41,8 @@ android {
 
 dependencies {
 
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.5")
     implementation("androidx.media3:media3-exoplayer:1.8.0")
     implementation("androidx.media3:media3-exoplayer-dash:1.8.0")

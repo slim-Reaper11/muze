@@ -6,9 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.muze.Player.MusicPlayer
 import com.example.muze.data.LocalMusicRepository
 import com.example.muze.data.Song
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 
 
 class MusicViewModel(application: Application) : AndroidViewModel(application) {
@@ -16,28 +20,46 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = LocalMusicRepository(application)
     private val player = MusicPlayer(application)
 
-    private val _songs = MutableStateFlow<List<Song>>(emptyList())
-    val songs = _songs.asStateFlow()
 
-    private val _currentSong = MutableStateFlow<Song?>(null)
-    val currentSong = _currentSong.asStateFlow()
 
-    fun loadSongs() {
-        viewModelScope.launch {
-            _songs.value = repository.getSongs()
-        }
-    }
+    private val _playerState = MutableStateFlow(PlayerUiState())
+    val playerState = _playerState.asStateFlow()
+
+
+    val allSongs: StateFlow<List<Song>> =
+        repository.getLocalSongs()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
 
     fun play(song: Song) {
-        _currentSong.value = song
         player.playSong(song.filePath)
+        _playerState.value = PlayerUiState(
+            currentSong = song,
+            isPlaying = true
+        )
+
     }
 
-    fun pause() = player.pause()
-    fun resume() = player.resume()
+    fun pause() {
+        player.pause()
+        _playerState.update { it.copy(isPlaying = false) }
+    }
+
+    fun resume() {
+        player.resume()
+        _playerState.update { it.copy(isPlaying = true) }
+    }
 
     override fun onCleared() {
         super.onCleared()
         player.release()
     }
 }
+
+data class PlayerUiState(
+    val currentSong: Song? = null,
+    val isPlaying: Boolean = false
+)

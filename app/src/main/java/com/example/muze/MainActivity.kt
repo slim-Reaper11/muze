@@ -9,6 +9,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.example.muze.ui.theme.MuzeTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.muze.data.Song
 import com.example.muze.ui.theme.HomeView
 
 class MainActivity : ComponentActivity() {
@@ -17,18 +18,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val viewModel: MusicViewModel = viewModel()
-
-            val songs by viewModel.songs.collectAsState()
-            val current by viewModel.currentSong.collectAsState()
-
-            LaunchedEffect(Unit) {
-                viewModel.loadSongs()
-            }
-
             MuzeTheme {
                 HomeView(
-                    songs = songs,
-                    onSongClick = { song -> viewModel.play(song) }
+                    viewModel = viewModel
                 )
             }
         }

@@ -2,9 +2,17 @@ package com.example.muze.data
 
 import android.content.Context
 import android.provider.MediaStore
-import com.example.muze.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
 class LocalMusicRepository(private val context: Context) {
+
+    fun getLocalSongs(): Flow<List<Song>> =
+        flow {
+            emit(getSongs())
+        }.flowOn(Dispatchers.IO)
 
     fun getSongs(): List<Song> {
         val songList = mutableListOf<Song>()
@@ -13,7 +21,8 @@ class LocalMusicRepository(private val context: Context) {
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.TITLE,
             MediaStore.Audio.Media.ARTIST,
-            MediaStore.Audio.Media.DATA
+            MediaStore.Audio.Media.DATA,
+            MediaStore.Audio.Media.ALBUM_ID
         )
 
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
@@ -31,19 +40,22 @@ class LocalMusicRepository(private val context: Context) {
             val titleColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
             val artistColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
             val dataColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+            val albumIdCol = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
 
             while (it.moveToNext()) {
                 val id = it.getLong(idColumn)
                 val title = it.getString(titleColumn)
                 val artist = it.getString(artistColumn)
                 val path = it.getString(dataColumn)
+                val albumID = it.getLong(albumIdCol)
 
                 songList.add(
                     Song(
                         id = id,
                         title = title,
                         artist = artist,
-                        filePath = path
+                        filePath = path,
+                        albumID = albumID
                     )
                 )
             }

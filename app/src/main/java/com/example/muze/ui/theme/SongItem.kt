@@ -1,5 +1,7 @@
 package com.example.muze.ui.theme
 
+import android.content.ContentUris
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,15 +31,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.muze.R
 import com.example.muze.data.Song
 
 @Composable
 fun SongItem(
     song: Song,
-    onSongClick: (Song) -> Unit
-
+    onSongClick: (Song) -> Unit,
+    currentSong: Song?
 ) {
+
+    val uri = remember(song.albumID) { albumArtUri(song.albumID) }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -48,38 +54,37 @@ fun SongItem(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
+            AsyncImage(
+                model = uri,
+                contentDescription = "",
                 modifier = Modifier
                     .size(
                         width = 70.dp,
                         height = 70.dp
                     )
-                    .clip(
-                        RoundedCornerShape(4.dp)
-                    )
+                    .clip(RoundedCornerShape(4.dp))
                     .border(
-                        1.dp,
+                        0.5.dp,
                         colorResource(R.color.song_border),
                         RoundedCornerShape(4.dp)
                     ),
-                painter = painterResource(R.drawable.muze),
-                contentDescription = "",
                 contentScale = ContentScale.Fit,
-
-                )
+                placeholder = painterResource(R.drawable.muze),
+                error = painterResource(R.drawable.muze)
+            )
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
                     text = song.title,
-                    color = Color.White,
+                    color = if (song == currentSong) colorResource(R.color.main_color) else Color.White,
                     style = Typography.bodyLarge.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 19.sp
-                    )
+                    ),
                 )
                 Text(
                     text = song.artist,
-                    color = colorResource(R.color.text_dark),
+                    color = if (song == currentSong) Color.White else colorResource(R.color.text_dark),
                     style = Typography.bodyLarge.copy(
                         fontWeight = FontWeight.Normal,
                         fontSize = 14.sp
@@ -96,3 +101,9 @@ fun SongItem(
 
     }
 }
+
+fun albumArtUri(albumId: Long): Uri =
+    ContentUris.withAppendedId(
+        Uri.parse("content://media/external/audio/albumart"),
+        albumId
+    )
