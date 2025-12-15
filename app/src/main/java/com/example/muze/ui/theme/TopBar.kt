@@ -3,6 +3,7 @@ package com.example.muze.ui.theme
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -28,7 +29,7 @@ import com.example.muze.R
 @Composable
 fun TopBar() {
     TopAppBar(
-        modifier = Modifier.padding(end = 8.dp),
+        modifier = Modifier.padding(end = 8.dp).height(50.dp),
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent
         ),
@@ -39,7 +40,7 @@ fun TopBar() {
                 color = colorResource(R.color.main_color),
                 fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(start = 8.dp)
+                modifier = Modifier.padding(start = 8.dp, top = 8.dp)
             )
         },
         actions = {

@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,14 +37,26 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavController
 import com.example.muze.MusicViewModel
 import com.example.muze.R
+import com.example.muze.Screen
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeView(
-    viewModel: MusicViewModel
+    viewModel: MusicViewModel,
+    navController: NavController
 ) {
+
+
+    val systemUiController = rememberSystemUiController()
+    SideEffect {
+        systemUiController.setStatusBarColor(Color.Transparent, darkIcons = false)
+        systemUiController.setNavigationBarColor(Color.Black, darkIcons = false)
+    }
+
 
     val context = LocalContext.current
 
@@ -75,7 +88,7 @@ fun HomeView(
             }
         )
     } else {
-        HomeContent(viewModel = viewModel)
+        HomeContent(viewModel = viewModel, navController)
     }
 }
 
@@ -123,7 +136,8 @@ fun PermissionScreen(onRetry: () -> Unit) {
 
 @Composable
 fun HomeContent(
-    viewModel: MusicViewModel
+    viewModel: MusicViewModel,
+    navController: NavController
 ) {
     val gradient = Brush.verticalGradient(
         colors = listOf(
@@ -147,16 +161,9 @@ fun HomeContent(
             LazyColumn(modifier = Modifier.padding(padding)) {
                 items(songs.value) { song ->
                     SongItem(
-                        song, { song ->
-                            if (state.currentSong == song) {
-                                if (state.isPlaying) {
-                                    viewModel.pause()
-                                } else {
-                                    viewModel.resume()
-                                }
-                            } else (
-                                    viewModel.play(song)
-                                    )
+                        song, {song->
+                            viewModel.play(song)
+                            navController.navigate(Screen.PlayerScreen.route)
                         }, currentSong = state.currentSong
                     )
                 }

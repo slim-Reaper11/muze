@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
@@ -57,6 +58,11 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         super.onCleared()
         player.release()
     }
+
+    fun getSongById(id: Long): Flow<Song?> =
+        allSongs.map { list ->
+            list.find { it.id == id }
+        }
 }
 
 data class PlayerUiState(

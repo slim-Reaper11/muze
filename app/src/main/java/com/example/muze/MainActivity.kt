@@ -17,11 +17,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val viewModel: MusicViewModel = viewModel()
             MuzeTheme {
-                HomeView(
-                    viewModel = viewModel
-                )
+                Navigation()
             }
         }
     }
