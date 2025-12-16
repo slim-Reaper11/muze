@@ -27,6 +27,8 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     val playerState = _playerState.asStateFlow()
 
 
+
+
     val allSongs: StateFlow<List<Song>> =
         repository.getLocalSongs()
             .stateIn(
@@ -35,13 +37,13 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                 initialValue = emptyList()
             )
 
+
     fun play(song: Song) {
         player.playSong(song.filePath)
         _playerState.value = PlayerUiState(
             currentSong = song,
             isPlaying = true
         )
-
     }
 
     fun pause() {

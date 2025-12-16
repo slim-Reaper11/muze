@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.muze"
-        minSdk = 24
+        minSdk = 28
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -20,7 +20,10 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -41,7 +44,11 @@ android {
 
 dependencies {
 
-    implementation("androidx.palette:palette:1.0.0")
+    implementation(libs.material3)
+    implementation(libs.androidx.material.icons.core)
+    implementation(libs.androidx.material.icons.extended)
+
+    implementation("io.github.om252345:composemeshgradient:0.3.0")
 
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
     implementation("io.coil-kt:coil-compose:2.6.0")

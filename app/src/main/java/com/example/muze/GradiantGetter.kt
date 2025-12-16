@@ -1,13 +1,19 @@
 package com.example.muze
 
 import android.graphics.Bitmap
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 data class CornerColors(
     val topLeft: Color,
     val topRight: Color,
     val bottomLeft: Color,
-    val bottomRight: Color
+    val bottomRight: Color,
+    val middleRight: Color,
+    val middleLeft: Color,
+    val middleTop: Color,
+    val middleBottom: Color,
+    val middle: Color
 )
 
 fun sampleColor(
@@ -50,6 +56,12 @@ fun getCornerColors(bitmap: Bitmap): CornerColors {
         topLeft = sampleColor(bitmap, 0, 0, s),
         topRight = sampleColor(bitmap, w - s, 0, s),
         bottomLeft = sampleColor(bitmap, 0, h - s, s),
-        bottomRight = sampleColor(bitmap, w - s, h - s, s)
+        bottomRight = sampleColor(bitmap, w - s, h - s, s),
+        middleTop = sampleColor(bitmap, w / 2, 0, s),
+        middleLeft = sampleColor(bitmap, 0, h / 2, s),
+        middleRight = sampleColor(bitmap, w - s, h / w, s),
+        middleBottom = sampleColor(bitmap, w / 2, h - s, s),
+        middle = sampleColor(bitmap, w / 2, h / 2, s)
     )
 }
+

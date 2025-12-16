@@ -7,6 +7,9 @@ import androidx.media3.exoplayer.ExoPlayer
 class MusicPlayer(val context: Context){
     private val player = ExoPlayer.Builder(context).build()
 
+    //songList, initial index:int = 0
+
+
     fun playSong(path: String) {
         val mediaItem = MediaItem.fromUri(path)
         player.setMediaItem(mediaItem)
@@ -15,8 +18,6 @@ class MusicPlayer(val context: Context){
     }
     fun pause() = player.pause()
     fun resume() = player.play()
-    fun stop() = player.stop()
-
     fun release() = player.release()
 
     val isPlaying get() = player.isPlaying

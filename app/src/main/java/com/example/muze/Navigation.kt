@@ -1,5 +1,7 @@
 package com.example.muze
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -15,11 +17,11 @@ fun Navigation() {
     val viewModel: MusicViewModel = viewModel()
 
     NavHost(navController = navController, startDestination = Screen.HomeScreen.route) {
-        composable(route = Screen.HomeScreen.route) {
+        composable(route = Screen.HomeScreen.route, enterTransition = { EnterTransition.None }) {
             HomeView(viewModel, navController)
         }
 
-        composable(route = Screen.PlayerScreen.route) {
+        composable(route = Screen.PlayerScreen.route, exitTransition = { ExitTransition.None }) {
             PlayerView(viewModel, navController)
         }
     }

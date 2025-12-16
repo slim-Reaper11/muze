@@ -1,7 +1,6 @@
 package com.example.muze.ui.theme
 
 import android.graphics.Bitmap
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,13 +16,18 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PauseCircle
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -37,28 +41,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.BlurredEdgeTreatment
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.muze.MusicViewModel
 import com.example.muze.R
-import com.example.muze.data.Song
 import com.example.muze.getCornerColors
+import io.github.om252345.composemeshgradient.MeshGradient
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,26 +71,32 @@ fun PlayerView(
 
     val uri = remember(song.albumID) { albumArtUri(song.albumID) }
 
-    val gradient = Brush.verticalGradient(
-        colors = listOf(
-            colorResource(R.color.background_dark),
-            colorResource(R.color.black)
-        )
-    )
-
-    var boxGradiant by remember {
+    var colors by remember {
         mutableStateOf(
-            Brush.verticalGradient(
-                listOf(Color.Black, Color.Black)
+            arrayOf<Color>(
+                Color.Black, Color.Black, Color.Black,
+                Color.Black, Color.Black, Color.Black,
+                Color.Black, Color.Black, Color.Black
             )
         )
     }
 
+
     Box(
         modifier = Modifier
-            .background(boxGradiant)
             .fillMaxSize()
     ) {
+        MeshGradient(
+            width = 3,
+            height = 3,
+            points = arrayOf(
+                Offset(0f, 0f), Offset(0.5f, 0f), Offset(1f, 0f),
+                Offset(0f, 0.5f), Offset(0.5f, 0.5f), Offset(1f, 0.5f),
+                Offset(0f, 1f), Offset(0.5f, 1f), Offset(1f, 1f)
+            ),
+            colors = colors,
+            modifier = Modifier.fillMaxSize()
+        )
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -126,7 +130,7 @@ fun PlayerView(
                                 }
                             ) {
                                 Icon(
-                                    Icons.Default.ArrowDropDown,
+                                    painter = painterResource(R.drawable.ic_launcher_foreground),
                                     contentDescription = "",
                                     modifier = Modifier
                                         .padding(8.dp)
@@ -165,7 +169,6 @@ fun PlayerView(
 //                                .size(380.dp)
 //                                .align(Alignment.Center)
 //                                .fillMaxWidth()
-//                                .blur(radius = 1.dp, edgeTreatment = BlurredEdgeTreatment.Rectangle)
 //                        )
                         //                    Image(
                         //                        painter = painterResource(R.drawable.ic_launcher_background),
@@ -185,25 +188,72 @@ fun PlayerView(
                             placeholder = painterResource(R.drawable.muze),
                             error = painterResource(R.drawable.muze),
                             onSuccess = { success ->
+
                                 val bitmap = success.result.drawable
                                     .toBitmap()
                                     .copy(Bitmap.Config.ARGB_8888, false)
 
+//                                Palette.from(bitmap).generate { palette ->
+//                                    val colorInt =
+//                                        palette?.vibrantSwatch?.rgb
+//                                            ?: palette?.mutedSwatch?.rgb
+//                                            ?: palette?.getDominantColor(Color.Black.toArgb())
+//                                            ?: Color.Black.toArgb()
+//
+//                                    dominantColor = Color(colorInt)
+//                                }
                                 val corners = getCornerColors(bitmap)
-                                boxGradiant = Brush.linearGradient(
-                                    colors = listOf(
-                                        corners.topLeft,
-                                        corners.topRight,
-                                        corners.bottomRight.darken(),
-                                        corners.bottomLeft.darken()
-                                    )
+
+                                colors = arrayOf(
+                                    corners.bottomLeft.darkenWithMin(),
+                                    corners.middleBottom.darkenWithMin(),
+                                    corners.bottomRight.darkenWithMin(),
+                                    corners.middleLeft.darkenWithMin(),
+                                    corners.middle.darkenWithMin(),
+                                    corners.middleRight.darkenWithMin(),
+                                    corners.topLeft.darkenWithMin(),
+                                    corners.middleTop.darkenWithMin(),
+                                    corners.topRight.darkenWithMin(),
                                 )
+
+
+//                                boxGradiant = Brush.verticalGradient(
+//                                    colors = listOf(
+//                                        corners.topLeft,
+//                                        corners.topRight,
+//                                        corners.bottomRight.darken(),
+//                                        corners.bottomLeft,
+//                                        corners.middleTop,
+//                                        corners.middle,
+//                                        corners.middleBottom
+//                                    )
+//                                )
+
+
+//
+
+//                                boxGradiant = Brush.verticalGradient(
+//                                    colorStops = arrayOf(
+//                                        0.0f to corners.topLeft,
+//                                        0.15f to corners.middleTop,
+//                                        0.25f to corners.topRight,
+//
+//                                        0.40f to corners.middleLeft,
+//                                        0.50f to corners.middle,       // dominant center
+//                                        0.60f to corners.middleRight,
+//
+//                                        0.75f to corners.bottomLeft,
+//                                        0.85f to corners.middleBottom,
+//                                        1.0f to corners.bottomRight
+//                                    )
+//                                )
+
                             }
                         )
 
 
                     }
-                    Spacer(modifier = Modifier.height(60.dp))
+                    Spacer(modifier = Modifier.height(80.dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -211,7 +261,7 @@ fun PlayerView(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column() {
+                        Column {
                             Text(
                                 text = song.title,
                                 style = Typography.bodyLarge.copy(
@@ -239,13 +289,89 @@ fun PlayerView(
                             tint = Color.White
                         )
                     }
-                    IconButton(
-                        onClick = {
-                            viewModel.pause()
-                        }
+                    //TODO add the progressbar
+                    Spacer(Modifier.height(20.dp))
+                    Text("progress bar")
+                    Spacer(Modifier.height(20.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(start = 30.dp, end = 30.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        Icon(Icons.Default.PlayArrow, contentDescription = "")
+                        IconButton(
+                            onClick = {},
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Shuffle,
+                                contentDescription = "",
+                                modifier = Modifier.fillMaxSize(),
+                                tint = Color.White,
+
+                                )
+                        }
+                        IconButton(
+                            onClick = {},
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.SkipPrevious,
+                                contentDescription = "",
+                                modifier = Modifier.fillMaxSize(),
+                                tint = Color.White
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                if (state.isPlaying) {
+                                    viewModel.pause()
+                                } else {
+                                    viewModel.resume()
+                                }
+                            },
+                            modifier = Modifier.size(90.dp)
+                        ) {
+                            if (state.isPlaying) {
+                                Icon(
+                                    Icons.Default.PauseCircle,
+                                    contentDescription = "",
+                                    modifier = Modifier.fillMaxSize(),
+                                    tint = Color.White
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Default.PlayCircle,
+                                    contentDescription = "",
+                                    modifier = Modifier.fillMaxSize(),
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                        IconButton(
+                            onClick = {},
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.SkipNext,
+                                contentDescription = "",
+                                modifier = Modifier.fillMaxSize(),
+                                tint = Color.White
+                            )
+                        }
+                        IconButton(
+                            onClick = {},
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.AddCircle,
+                                contentDescription = "",
+                                modifier = Modifier.fillMaxSize(),
+                                tint = Color.White
+                            )
+                        }
                     }
+
                 }
             }
         }
@@ -261,6 +387,14 @@ fun Color.darken(factor: Float = 0.65f): Color {
     )
 }
 
+fun Color.darkenWithMin(factor: Float = 0.65f, min: Float = 0.15f): Color {
+    return Color(
+        red = maxOf(red, min),
+        green = maxOf(green, min),
+        blue = maxOf(blue, min),
+        alpha = alpha
+    )
+}
 
 //@Preview(showBackground = true)
 //@Composable
