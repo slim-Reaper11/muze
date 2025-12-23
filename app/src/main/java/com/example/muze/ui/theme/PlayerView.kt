@@ -16,20 +16,22 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PauseCircle
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -43,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -55,7 +58,9 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.muze.MusicViewModel
 import com.example.muze.R
+import com.example.muze.darkenWithMin
 import com.example.muze.getCornerColors
+import com.example.muze.longToMinutes
 import io.github.om252345.composemeshgradient.MeshGradient
 
 
@@ -66,10 +71,8 @@ fun PlayerView(
     navController: NavController
 ) {
 
-    val state by viewModel.playerState.collectAsState()
-    val song = state.currentSong ?: return
+    val song by viewModel.currentSong.collectAsState()
 
-    val uri = remember(song.albumID) { albumArtUri(song.albumID) }
 
     var colors by remember {
         mutableStateOf(
@@ -82,322 +85,322 @@ fun PlayerView(
     }
 
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        MeshGradient(
-            width = 3,
-            height = 3,
-            points = arrayOf(
-                Offset(0f, 0f), Offset(0.5f, 0f), Offset(1f, 0f),
-                Offset(0f, 0.5f), Offset(0.5f, 0.5f), Offset(1f, 0.5f),
-                Offset(0f, 1f), Offset(0.5f, 1f), Offset(1f, 1f)
-            ),
-            colors = colors,
-            modifier = Modifier.fillMaxSize()
-        )
+    song?.let { song ->
+        val uri = remember(song.albumID) { albumArtUri(song.albumID) }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.4f))
         ) {
-            Scaffold(
-                containerColor = Color.Transparent,
-                modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing),
-                topBar = {
-                    TopAppBar(
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.Transparent
-                        ),
-                        title = {
-                            Text(
-                                text = "MUZE",
-                                style = Typography.titleLarge,
-                                color = colorResource(R.color.main_color),
-                                fontWeight = FontWeight.ExtraBold,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .padding(start = 8.dp, top = 8.dp)
-                                    .fillMaxWidth()
-                                    .align(Alignment.Center)
-                            )
-                        },
-                        navigationIcon = {
-                            IconButton(
-                                onClick = {
-                                    navController.navigateUp()
-                                }
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_launcher_foreground),
-                                    contentDescription = "",
-                                    modifier = Modifier
-                                        .padding(8.dp)
-                                        .size(32.dp)
-                                )
-                            }
-                        },
-                        actions = {
-                            IconButton(onClick = {
-
-                            }) {
-                                Icon(
-                                    Icons.Default.MoreVert,
-                                    contentDescription = "",
-                                    modifier = Modifier
-                                        .padding(8.dp)
-                                        .size(32.dp)
-                                )
-                            }
-                        }
-                    )
-                }
+            MeshGradient(
+                width = 3,
+                height = 3,
+                points = arrayOf(
+                    Offset(0f, 0f), Offset(0.5f, 0f), Offset(1f, 0f),
+                    Offset(0f, 0.5f), Offset(0.5f, 0.5f), Offset(1f, 0.5f),
+                    Offset(0f, 1f), Offset(0.5f, 1f), Offset(1f, 1f)
+                ),
+                colors = colors,
+                modifier = Modifier.fillMaxSize()
             )
-            { innerPadding ->
-                Column(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Spacer(modifier = Modifier.height(75.dp))
-                    Box {
-//                        Box(
-//                            modifier = Modifier
-//                                .background(boxGradiant)
-//                                .size(380.dp)
-//                                .align(Alignment.Center)
-//                                .fillMaxWidth()
-//                        )
-                        //                    Image(
-                        //                        painter = painterResource(R.drawable.ic_launcher_background),
-                        //                        contentDescription = "",
-                        //                        modifier = Modifier
-                        //                            .fillMaxWidth()
-                        //                            .size(380.dp)
-                        //                            .align(Alignment.Center)
-                        //                    )
-                        AsyncImage(
-                            model = uri,
-                            contentDescription = "",
-                            modifier = Modifier
-                                .size(320.dp)
-                                .align(Alignment.Center),
-                            contentScale = ContentScale.Crop,
-                            placeholder = painterResource(R.drawable.muze),
-                            error = painterResource(R.drawable.muze),
-                            onSuccess = { success ->
-
-                                val bitmap = success.result.drawable
-                                    .toBitmap()
-                                    .copy(Bitmap.Config.ARGB_8888, false)
-
-//                                Palette.from(bitmap).generate { palette ->
-//                                    val colorInt =
-//                                        palette?.vibrantSwatch?.rgb
-//                                            ?: palette?.mutedSwatch?.rgb
-//                                            ?: palette?.getDominantColor(Color.Black.toArgb())
-//                                            ?: Color.Black.toArgb()
-//
-//                                    dominantColor = Color(colorInt)
-//                                }
-                                val corners = getCornerColors(bitmap)
-
-                                colors = arrayOf(
-                                    corners.bottomLeft.darkenWithMin(),
-                                    corners.middleBottom.darkenWithMin(),
-                                    corners.bottomRight.darkenWithMin(),
-                                    corners.middleLeft.darkenWithMin(),
-                                    corners.middle.darkenWithMin(),
-                                    corners.middleRight.darkenWithMin(),
-                                    corners.topLeft.darkenWithMin(),
-                                    corners.middleTop.darkenWithMin(),
-                                    corners.topRight.darkenWithMin(),
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.4f))
+            ) {
+                Scaffold(
+                    containerColor = Color.Transparent,
+                    modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing),
+                    topBar = {
+                        TopAppBar(
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                containerColor = Color.Transparent
+                            ),
+                            title = {
+                                Text(
+                                    text = "MUZE",
+                                    style = Typography.titleLarge,
+                                    color = colorResource(R.color.main_color),
+                                    fontWeight = FontWeight.ExtraBold,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .padding(start = 8.dp, top = 8.dp)
+                                        .fillMaxWidth()
+                                        .align(Alignment.Center)
                                 )
-
-
-//                                boxGradiant = Brush.verticalGradient(
-//                                    colors = listOf(
-//                                        corners.topLeft,
-//                                        corners.topRight,
-//                                        corners.bottomRight.darken(),
-//                                        corners.bottomLeft,
-//                                        corners.middleTop,
-//                                        corners.middle,
-//                                        corners.middleBottom
-//                                    )
-//                                )
-
-
-//
-
-//                                boxGradiant = Brush.verticalGradient(
-//                                    colorStops = arrayOf(
-//                                        0.0f to corners.topLeft,
-//                                        0.15f to corners.middleTop,
-//                                        0.25f to corners.topRight,
-//
-//                                        0.40f to corners.middleLeft,
-//                                        0.50f to corners.middle,       // dominant center
-//                                        0.60f to corners.middleRight,
-//
-//                                        0.75f to corners.bottomLeft,
-//                                        0.85f to corners.middleBottom,
-//                                        1.0f to corners.bottomRight
-//                                    )
-//                                )
-
-                            }
-                        )
-
-
-                    }
-                    Spacer(modifier = Modifier.height(80.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 46.dp, end = 46.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = song.title,
-                                style = Typography.bodyLarge.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp
-                                ),
-                                modifier = Modifier.width(280.dp),
-                                softWrap = true,
-                                color = Color.White
-                            )
-                            Text(
-                                text = song.artist,
-                                style = Typography.bodyLarge.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp
-                                ),
-                                modifier = Modifier.width(270.dp),
-                                color = colorResource(R.color.text_dark)
-                            )
-                        }
-                        Icon(
-                            Icons.Default.Favorite,
-                            contentDescription = "",
-                            modifier = Modifier.size(30.dp),
-                            tint = Color.White
-                        )
-                    }
-                    //TODO add the progressbar
-                    Spacer(Modifier.height(20.dp))
-                    Text("progress bar")
-                    Spacer(Modifier.height(20.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(start = 30.dp, end = 30.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        IconButton(
-                            onClick = {},
-                            modifier = Modifier.size(30.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.Shuffle,
-                                contentDescription = "",
-                                modifier = Modifier.fillMaxSize(),
-                                tint = Color.White,
-
-                                )
-                        }
-                        IconButton(
-                            onClick = {},
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.SkipPrevious,
-                                contentDescription = "",
-                                modifier = Modifier.fillMaxSize(),
-                                tint = Color.White
-                            )
-                        }
-                        IconButton(
-                            onClick = {
-                                if (state.isPlaying) {
-                                    viewModel.pause()
-                                } else {
-                                    viewModel.resume()
+                            },
+                            navigationIcon = {
+                                IconButton(
+                                    onClick = {
+                                        navController.navigateUp()
+                                    }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_launcher_foreground),
+                                        contentDescription = "",
+                                        modifier = Modifier
+                                            .padding(8.dp)
+                                            .size(32.dp)
+                                    )
                                 }
                             },
-                            modifier = Modifier.size(90.dp)
+                            actions = {
+                                IconButton(onClick = {
+
+                                }) {
+                                    Icon(
+                                        Icons.Default.MoreVert,
+                                        contentDescription = "",
+                                        modifier = Modifier
+                                            .padding(8.dp)
+                                            .size(32.dp)
+                                    )
+                                }
+                            }
+                        )
+                    }
+                )
+                { innerPadding ->
+                    Column(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Spacer(modifier = Modifier.height(75.dp))
+                        Box {
+                            AsyncImage(
+                                model = uri,
+                                contentDescription = "",
+                                modifier = Modifier
+                                    .size(320.dp)
+                                    .align(Alignment.Center),
+                                contentScale = ContentScale.Crop,
+                                placeholder = painterResource(R.drawable.muze),
+                                error = painterResource(R.drawable.muze),
+                                onError = {
+                                    colors = arrayOf(
+                                        Color.Black.darkenWithMin(),
+                                        Color.Black.darkenWithMin(),
+                                        Color.Black.darkenWithMin(),
+                                        Color.Black.darkenWithMin(),
+                                        Color.Black.darkenWithMin(),
+                                        Color.Black.darkenWithMin(),
+                                        Color.Black.darkenWithMin(),
+                                        Color.Black.darkenWithMin(),
+                                        Color.Black.darkenWithMin()
+                                    )
+                                },
+                                onSuccess = { success ->
+
+                                    val bitmap = success.result.drawable
+                                        .toBitmap()
+                                        .copy(Bitmap.Config.ARGB_8888, false)
+                                    val corners = getCornerColors(bitmap)
+
+                                    colors = arrayOf(
+                                        corners.bottomLeft.darkenWithMin(),
+                                        corners.middleBottom.darkenWithMin(),
+                                        corners.bottomRight.darkenWithMin(),
+                                        corners.middleLeft.darkenWithMin(),
+                                        corners.middle.darkenWithMin(),
+                                        corners.middleRight.darkenWithMin(),
+                                        corners.topLeft.darkenWithMin(),
+                                        corners.middleTop.darkenWithMin(),
+                                        corners.topRight.darkenWithMin(),
+                                    )
+                                }
+                            )
+
+
+                        }
+                        Spacer(modifier = Modifier.height(80.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 46.dp, end = 46.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if (state.isPlaying) {
+                            Column {
+                                Text(
+                                    text = song.title,
+                                    style = Typography.bodyLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 20.sp
+                                    ),
+                                    maxLines = 1,
+                                    modifier = Modifier.width(280.dp),
+                                    softWrap = true,
+                                    color = Color.White
+                                )
+                                Text(
+                                    text = song.artist,
+                                    style = Typography.bodyLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    ),
+                                    modifier = Modifier.width(270.dp),
+                                    color = colorResource(R.color.text_dark),
+                                    maxLines = 1,
+                                    softWrap = true
+                                )
+                            }
+                            Icon(
+                                Icons.Default.Favorite,
+                                contentDescription = "",
+                                modifier = Modifier.size(30.dp),
+                                tint = Color.White
+                            )
+                        }
+                        //TODO add the progressbar
+                        Slider(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 40.dp, top = 16.dp, end = 40.dp)
+                                .height(35.dp),
+                            value = viewModel.currentPosition.collectAsState().value.toFloat(),
+                            onValueChange = {
+                                viewModel.updateIsChanging(true)
+                                val currentPosition = it.toLong()
+                                viewModel.updateCurrentPosition(currentPosition)
+                            },
+                            onValueChangeFinished = {
+                                viewModel.goToCurrentPosition(viewModel.currentPosition.value)
+                                viewModel.updateIsChanging(false)
+                            },
+                            valueRange = 0f..viewModel.duration.collectAsState().value.toFloat(),
+                            colors = SliderDefaults.colors(
+                                activeTrackColor = Color.White,
+                                inactiveTrackColor = Color.White
+                            ),
+                            thumb = {
+                                Box(
+                                    Modifier
+                                        .size(15.dp)
+                                        .background(Color.White, shape = CircleShape)
+                                )
+                            },
+                            track = {
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(2.dp)
+                                        .background(Color.White, RectangleShape)
+                                        .align(Alignment.CenterHorizontally)
+                                )
+                            }
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 46.dp, end = 46.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = longToMinutes(viewModel.currentPosition.collectAsState().value),
+                                color = Color.White,
+                                fontSize = 14.sp
+
+                            )
+                            Text(
+                                text = longToMinutes(viewModel.duration.collectAsState().value),
+                                color = Color.White,
+                                fontSize = 14.sp
+                            )
+                        }
+
+
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 30.dp, end = 30.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            IconButton(
+                                onClick = {},
+                                modifier = Modifier.size(30.dp)
+                            ) {
                                 Icon(
-                                    Icons.Default.PauseCircle,
+                                    Icons.Default.Shuffle,
+                                    contentDescription = "",
+                                    modifier = Modifier.fillMaxSize(),
+                                    tint = Color.White,
+
+                                    )
+                            }
+                            IconButton(
+                                onClick = {
+                                    viewModel.previousSong()
+                                },
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.SkipPrevious,
                                     contentDescription = "",
                                     modifier = Modifier.fillMaxSize(),
                                     tint = Color.White
                                 )
-                            } else {
+                            }
+                            IconButton(
+                                onClick = {
+                                    if (viewModel.isPlaying.value) {
+                                        viewModel.pause()
+                                    } else {
+                                        viewModel.resume()
+                                    }
+                                },
+                                modifier = Modifier.size(90.dp)
+                            ) {
+                                if (viewModel.isPlaying.collectAsState().value) {
+                                    Icon(
+                                        Icons.Default.PauseCircle,
+                                        contentDescription = "",
+                                        modifier = Modifier.fillMaxSize(),
+                                        tint = Color.White
+                                    )
+                                } else {
+                                    Icon(
+                                        Icons.Default.PlayCircle,
+                                        contentDescription = "",
+                                        modifier = Modifier.fillMaxSize(),
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+                            IconButton(
+                                onClick = {
+                                    viewModel.nextSong()
+                                },
+                                modifier = Modifier.size(40.dp)
+                            ) {
                                 Icon(
-                                    Icons.Default.PlayCircle,
+                                    Icons.Default.SkipNext,
+                                    contentDescription = "",
+                                    modifier = Modifier.fillMaxSize(),
+                                    tint = Color.White
+                                )
+                            }
+                            IconButton(
+                                onClick = {},
+                                modifier = Modifier.size(30.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.AddCircle,
                                     contentDescription = "",
                                     modifier = Modifier.fillMaxSize(),
                                     tint = Color.White
                                 )
                             }
                         }
-                        IconButton(
-                            onClick = {},
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.SkipNext,
-                                contentDescription = "",
-                                modifier = Modifier.fillMaxSize(),
-                                tint = Color.White
-                            )
-                        }
-                        IconButton(
-                            onClick = {},
-                            modifier = Modifier.size(30.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.AddCircle,
-                                contentDescription = "",
-                                modifier = Modifier.fillMaxSize(),
-                                tint = Color.White
-                            )
-                        }
-                    }
 
+                    }
                 }
             }
         }
     }
 }
 
-fun Color.darken(factor: Float = 0.65f): Color {
-    return Color(
-        red = red * factor,
-        green = green * factor,
-        blue = blue * factor,
-        alpha = alpha
-    )
-}
-
-fun Color.darkenWithMin(factor: Float = 0.65f, min: Float = 0.15f): Color {
-    return Color(
-        red = maxOf(red, min),
-        green = maxOf(green, min),
-        blue = maxOf(blue, min),
-        alpha = alpha
-    )
-}
-
-//@Preview(showBackground = true)
-//@Composable
-//fun PlayerPreview() {
-//    PlayerView()
-//}

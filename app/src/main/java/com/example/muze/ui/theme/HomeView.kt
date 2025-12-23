@@ -1,23 +1,45 @@
 package com.example.muze.ui.theme
 
+import android.content.ContentUris
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,14 +52,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.muze.MusicViewModel
 import com.example.muze.R
 import com.example.muze.Screen
@@ -147,7 +178,13 @@ fun HomeContent(
     )
 
     val songs = viewModel.allSongs.collectAsState()
-    val state by viewModel.playerState.collectAsState()
+    val currentSong = viewModel.currentSong.collectAsState().value
+
+
+
+
+
+
 
 
     Box(modifier = Modifier.background(gradient)) {
@@ -156,18 +193,121 @@ fun HomeContent(
             modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing),
             topBar = { TopBar() },
 
+
             ) { padding ->
 
             LazyColumn(modifier = Modifier.padding(padding)) {
                 items(songs.value) { song ->
                     SongItem(
-                        song, {song->
-                            viewModel.play(song)
-                            navController.navigate(Screen.PlayerScreen.route)
-                        }, currentSong = state.currentSong
+                        song, { song ->
+                            viewModel.play(songs.value, songs.value.indexOf(song))
+                        }, currentSong = currentSong
                     )
+                }
+            }
+        }
+        currentSong?.let { song ->
+            ExtendedFloatingActionButton(
+                onClick = {
+                    navController.navigate(Screen.PlayerScreen.route)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .windowInsetsPadding(WindowInsets.navigationBars),
+                shape = RectangleShape,
+                containerColor = Color.Black.copy(alpha = 0.9f)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val uri =
+                            remember(currentSong.albumID) { albumArtUri(currentSong.albumID) }
+                        AsyncImage(
+                            model = uri,
+                            contentDescription = "",
+                            modifier = Modifier
+                                .size(
+                                    width = 55.dp,
+                                    height = 55.dp
+                                )
+                                .clip(RoundedCornerShape(4.dp)),
+                            contentScale = ContentScale.FillBounds,
+                            placeholder = painterResource(R.drawable.muze),
+                            error = painterResource(R.drawable.muze),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                text = song.title,
+                                color = Color.White,
+                                style = Typography.bodyLarge.copy(
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                overflow = TextOverflow.Clip,
+                                maxLines = 1,
+                                modifier = Modifier.width(220.dp)
+                            )
+                            Spacer(Modifier.height(3.dp))
+                            Text(
+                                text = song.artist,
+                                color = colorResource(R.color.text_dark),
+                                style = Typography.bodyLarge.copy(
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                overflow = TextOverflow.Clip,
+                                maxLines = 1,
+                                modifier = Modifier.width(220.dp)
+                            )
+                        }
+                    }
+
+                    Row(
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        IconButton(
+                            onClick = {},
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Favorite,
+                                contentDescription = "",
+                                modifier = Modifier.size(25.dp),
+                                tint = Color.White
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                if (viewModel.isPlaying.value) {
+                                    viewModel.pause()
+                                } else {
+                                    viewModel.resume()
+                                }
+                            },
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (viewModel.isPlaying.collectAsState().value) Icons.Default.PlayArrow else Icons.Default.Pause,
+                                contentDescription = "",
+                                modifier = Modifier.size(25.dp),
+                                tint = Color.White
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
+
