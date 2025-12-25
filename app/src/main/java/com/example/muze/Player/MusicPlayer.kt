@@ -6,6 +6,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.muze.data.Song
 import androidx.media3.common.Player
+import kotlinx.coroutines.delay
 
 
 class MusicPlayer(val context: Context) {
@@ -21,7 +22,6 @@ class MusicPlayer(val context: Context) {
 
     init {
         player.addListener(object : Player.Listener {
-
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 onIsPlayingChanged?.invoke(isPlaying)
             }

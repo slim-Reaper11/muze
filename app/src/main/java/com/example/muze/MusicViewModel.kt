@@ -25,6 +25,9 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
+    private val _isNotPaused = MutableStateFlow(false)
+    val isNotPaused: StateFlow<Boolean> = _isNotPaused.asStateFlow()
+
     private val _currentSong = MutableStateFlow<Song?>(null)
     val currentSong: StateFlow<Song?> = _currentSong.asStateFlow()
 
@@ -48,6 +51,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             val songId = mediaItem?.mediaId?.toLongOrNull()
             val song = allSongs.value.find { it.id == songId }
             _currentSong.value = song
+            _currentPosition.value = 0L
         }
 
         player.onPlaybackStateChanged = { state ->
@@ -84,14 +88,17 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
 
     fun play(songs: List<Song>, index: Int) {
         player.playSong(songs, index)
+        _isNotPaused.value  = true
     }
 
     fun pause() {
         player.pause()
+        _isNotPaused.value  = false
     }
 
     fun resume() {
         player.resume()
+        _isNotPaused.value  = true
     }
 
     fun nextSong() {

@@ -1,6 +1,11 @@
 package com.example.muze.ui.theme
 
 import android.graphics.Bitmap
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -84,6 +89,31 @@ fun PlayerView(
         )
     }
 
+    val transition = updateTransition(
+        targetState = viewModel.isNotPaused.collectAsState(),
+        label = null
+    )
+
+    val imageSize by transition.animateDp(
+        transitionSpec = { tween(100, easing = LinearEasing) },
+        label = "",
+        targetValueByState = { isPlaying ->
+            if (isPlaying.value) 320.dp else 310.dp
+        },
+    )
+    val backgroundShade by transition.animateColor(
+        transitionSpec = { tween(100, easing = LinearEasing) },
+        targetValueByState = { isPlaying ->
+            if (isPlaying.value) Color.Black.copy(alpha = 0.4f) else Color.Black.copy(alpha = 0.6f)
+        }
+    )
+    val textColor by transition.animateColor(
+        transitionSpec = { tween(100, easing = LinearEasing) },
+        targetValueByState = { isPlaying ->
+            if (isPlaying.value) Color.White else Color.White.copy(alpha = 0.8f)
+        }
+    )
+
 
     song?.let { song ->
         val uri = remember(song.albumID) { albumArtUri(song.albumID) }
@@ -106,7 +136,7 @@ fun PlayerView(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.4f))
+                    .background(backgroundShade)
             ) {
                 Scaffold(
                     containerColor = Color.Transparent,
@@ -168,12 +198,12 @@ fun PlayerView(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Spacer(modifier = Modifier.height(75.dp))
-                        Box {
+                        Box(modifier = Modifier.size(320.dp)) {
                             AsyncImage(
                                 model = uri,
                                 contentDescription = "",
                                 modifier = Modifier
-                                    .size(320.dp)
+                                    .size(imageSize)
                                     .align(Alignment.Center),
                                 contentScale = ContentScale.Crop,
                                 placeholder = painterResource(R.drawable.muze),
@@ -211,8 +241,6 @@ fun PlayerView(
                                     )
                                 }
                             )
-
-
                         }
                         Spacer(modifier = Modifier.height(80.dp))
                         Row(
@@ -232,16 +260,16 @@ fun PlayerView(
                                     maxLines = 1,
                                     modifier = Modifier.width(280.dp),
                                     softWrap = true,
-                                    color = Color.White
+                                    color = textColor
                                 )
                                 Text(
                                     text = song.artist,
                                     style = Typography.bodyLarge.copy(
-                                        fontWeight = FontWeight.Bold,
+                                        fontWeight = FontWeight.Normal,
                                         fontSize = 16.sp
                                     ),
                                     modifier = Modifier.width(270.dp),
-                                    color = colorResource(R.color.text_dark),
+                                    color = textColor,
                                     maxLines = 1,
                                     softWrap = true
                                 )
@@ -253,7 +281,6 @@ fun PlayerView(
                                 tint = Color.White
                             )
                         }
-                        //TODO add the progressbar
                         Slider(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -270,10 +297,6 @@ fun PlayerView(
                                 viewModel.updateIsChanging(false)
                             },
                             valueRange = 0f..viewModel.duration.collectAsState().value.toFloat(),
-                            colors = SliderDefaults.colors(
-                                activeTrackColor = Color.White,
-                                inactiveTrackColor = Color.White
-                            ),
                             thumb = {
                                 Box(
                                     Modifier
@@ -312,7 +335,7 @@ fun PlayerView(
                         }
 
 
-
+                        Spacer(Modifier.height(35.dp))
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -355,7 +378,7 @@ fun PlayerView(
                                 },
                                 modifier = Modifier.size(90.dp)
                             ) {
-                                if (viewModel.isPlaying.collectAsState().value) {
+                                if (viewModel.isNotPaused.collectAsState().value) {
                                     Icon(
                                         Icons.Default.PauseCircle,
                                         contentDescription = "",
@@ -396,7 +419,6 @@ fun PlayerView(
                                 )
                             }
                         }
-
                     }
                 }
             }
