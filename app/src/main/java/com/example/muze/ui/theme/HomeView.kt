@@ -298,7 +298,7 @@ fun HomeContent(
                             modifier = Modifier.size(30.dp)
                         ) {
                             Icon(
-                                imageVector = if (viewModel.isPlaying.collectAsState().value) Icons.Default.PlayArrow else Icons.Default.Pause,
+                                imageVector = if (viewModel.isPlaying.collectAsState().value) Icons.Default.Pause else Icons.Default.PlayArrow,
                                 contentDescription = "",
                                 modifier = Modifier.size(25.dp),
                                 tint = Color.White

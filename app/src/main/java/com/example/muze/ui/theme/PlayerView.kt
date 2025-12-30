@@ -24,11 +24,15 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.ShuffleOn
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,6 +63,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
+import androidx.media3.common.Player
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.muze.MusicViewModel
@@ -166,7 +171,7 @@ fun PlayerView(
                                     }
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.ic_launcher_foreground),
+                                        Icons.Default.ArrowDropDown,
                                         contentDescription = "",
                                         modifier = Modifier
                                             .padding(8.dp)
@@ -344,14 +349,18 @@ fun PlayerView(
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             IconButton(
-                                onClick = {},
+                                onClick = {
+                                    viewModel.shuffleMode()
+                                },
                                 modifier = Modifier.size(30.dp)
                             ) {
                                 Icon(
                                     Icons.Default.Shuffle,
                                     contentDescription = "",
                                     modifier = Modifier.fillMaxSize(),
-                                    tint = Color.White,
+                                    tint = if (viewModel.isShuffled.collectAsState().value) Color.White else colorResource(
+                                        R.color.text_dark
+                                    ),
 
                                     )
                             }
@@ -408,14 +417,20 @@ fun PlayerView(
                                 )
                             }
                             IconButton(
-                                onClick = {},
+                                onClick = {
+                                    viewModel.toggleRepeatMode()
+                                },
                                 modifier = Modifier.size(30.dp)
                             ) {
                                 Icon(
-                                    Icons.Default.AddCircle,
+                                    when (viewModel.repeatMode.collectAsState().value) {
+                                        Player.REPEAT_MODE_ONE -> Icons.Default.RepeatOne
+                                        Player.REPEAT_MODE_ALL -> Icons.Default.Repeat
+                                        else -> Icons.Default.Repeat
+                                    },
                                     contentDescription = "",
                                     modifier = Modifier.fillMaxSize(),
-                                    tint = Color.White
+                                    tint = if (viewModel.repeatMode.collectAsState().value == Player.REPEAT_MODE_OFF) Color.Gray else Color.White
                                 )
                             }
                         }
