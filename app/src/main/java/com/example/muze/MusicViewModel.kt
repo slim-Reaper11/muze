@@ -38,8 +38,6 @@ class MusicViewModel(
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
-    private val _isNotPaused = MutableStateFlow(false)
-    val isNotPaused: StateFlow<Boolean> = _isNotPaused.asStateFlow()
 
     private val _currentSong = MutableStateFlow<Song?>(null)
     val currentSong: StateFlow<Song?> = _currentSong.asStateFlow()
@@ -54,8 +52,6 @@ class MusicViewModel(
 
     private val _isChanging = MutableStateFlow<Boolean>(false)
 
-//    private var currentPlaylist: List<Song> = emptyList()
-
 
     private val _isShuffled = MutableStateFlow(false)
     val isShuffled: StateFlow<Boolean> = _isShuffled.asStateFlow()
@@ -65,7 +61,7 @@ class MusicViewModel(
 
     val repeatMode: StateFlow<Int> = _repeatMode.asStateFlow()
 
-    private var playlistSet = false
+    private val _isTransitioning = MutableStateFlow(false)
 
 
     init {
@@ -118,13 +114,16 @@ class MusicViewModel(
         mediaController?.addListener(object : Player.Listener {
 
             override fun onIsPlayingChanged(isPlayingNow: Boolean) {
-                _isPlaying.value = isPlayingNow
+                if (!_isTransitioning.value) {
+                    _isPlaying.value = isPlayingNow
+                }
             }
 
             override fun onMediaItemTransition(
                 mediaItem: MediaItem?,
                 reason: Int
             ) {
+                _isTransitioning.value = true
                 val songId = mediaItem?.mediaId?.toLongOrNull()
                 val song = allSongs.value.find { it.id == songId }
                 _currentSong.value = song
@@ -135,13 +134,26 @@ class MusicViewModel(
                 _playerState.value = state
 
                 if (state == Player.STATE_READY) {
+                    _isTransitioning.value = false
                     // duration is now valid (we'll use this later)
                     val duration = mediaController?.duration
                     if (duration != null) {
                         _duration.value = duration
                     }
                 }
+
             }
+
+            override fun onPositionDiscontinuity(
+                oldPosition: Player.PositionInfo,
+                newPosition: Player.PositionInfo,
+                reason: Int
+            ) {
+                if (reason == Player.DISCONTINUITY_REASON_SEEK) {
+                    _isTransitioning.value = true
+                }
+            }
+
 
             override fun onRepeatModeChanged(repeatMode: Int) {
                 super.onRepeatModeChanged(repeatMode)
@@ -164,7 +176,7 @@ class MusicViewModel(
             )
 
 
-//        fun play(songs: List<Song>, index: Int) {
+    //        fun play(songs: List<Song>, index: Int) {
 //        player.playSong(songs, index)
 //        _isNotPaused.value = true
 //    }
@@ -188,7 +200,6 @@ class MusicViewModel(
         mediaController?.shuffleModeEnabled = isShuffled.value
         mediaController?.prepare()
         mediaController?.play()
-        _isNotPaused.value = true
     }
 
 
@@ -226,7 +237,6 @@ class MusicViewModel(
 //    }
     fun pause() {
         mediaController?.pause()
-        _isNotPaused.value = false
     }
 
 
@@ -237,7 +247,6 @@ class MusicViewModel(
 
     fun resume() {
         mediaController?.play()
-        _isNotPaused.value = true
     }
 
 

@@ -95,7 +95,7 @@ fun PlayerView(
     }
 
     val transition = updateTransition(
-        targetState = viewModel.isNotPaused.collectAsState(),
+        targetState = viewModel.isPlaying.collectAsState(),
         label = null
     )
 
@@ -118,7 +118,7 @@ fun PlayerView(
             if (isPlaying.value) Color.White else Color.White.copy(alpha = 0.8f)
         }
     )
-
+    
 
     song?.let { song ->
         val uri = remember(song.albumID) { albumArtUri(song.albumID) }
@@ -387,7 +387,7 @@ fun PlayerView(
                                 },
                                 modifier = Modifier.size(90.dp)
                             ) {
-                                if (viewModel.isNotPaused.collectAsState().value) {
+                                if (viewModel.isPlaying.collectAsState().value) {
                                     Icon(
                                         Icons.Default.PauseCircle,
                                         contentDescription = "",
