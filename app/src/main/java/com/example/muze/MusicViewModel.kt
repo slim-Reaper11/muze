@@ -2,15 +2,12 @@ package com.example.muze
 
 import android.app.Application
 import android.util.Log
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
-import androidx.media3.common.Player.REPEAT_MODE_OFF
-import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.session.MediaController
 import com.example.muze.data.LocalMusicRepository
 import com.example.muze.data.Song
@@ -24,10 +21,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.Queue
 
 class MusicViewModel(
     application: Application,
-    ) :
+) :
     AndroidViewModel(application) {
 
 
@@ -38,7 +36,6 @@ class MusicViewModel(
 
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
-
 
 
     private val _currentSong = MutableStateFlow<Song?>(null)
@@ -54,9 +51,6 @@ class MusicViewModel(
 
     private val _isChanging = MutableStateFlow<Boolean>(false)
 
-    private val _isShuffled = MutableStateFlow(false)
-    val isShuffled: StateFlow<Boolean> = _isShuffled.asStateFlow()
-
     private val _repeatMode = MutableStateFlow(Player.REPEAT_MODE_OFF)
     val repeatMode: StateFlow<Int> = _repeatMode.asStateFlow()
 
@@ -65,10 +59,17 @@ class MusicViewModel(
     private val _mediaChanged = MutableStateFlow<Int>(0)
     val mediaChanged: StateFlow<Int> = _mediaChanged.asStateFlow()
 
-    private val _playlist = MutableStateFlow<List<Song>>(emptyList())
-    val playlist : StateFlow<List<Song>> = _playlist.asStateFlow()
+    private val _originalQueue = MutableStateFlow<List<Song>>(emptyList())
 
+    private val _shuffledQueue = MutableStateFlow<List<Song>>(emptyList())
 
+    private val _queue = MutableStateFlow<List<Song>>(emptyList())
+    val queue = _queue.asStateFlow()
+
+    private val _isShuffled = MutableStateFlow(false)
+    val isShuffled: StateFlow<Boolean> = _isShuffled.asStateFlow()
+
+    private val _currentMediaId = MutableStateFlow<String?>(null)
 
     init {
 
@@ -105,15 +106,11 @@ class MusicViewModel(
                 mediaItem: MediaItem?,
                 reason: Int
             ) {
-
-                val songId = mediaItem?.mediaId?.toLongOrNull()
-                val song = allSongs.value.find { it.id == songId }
+                _currentMediaId.value = mediaItem?.mediaId
+                val song = allSongs.value.find { it.id == _currentMediaId.value?.toLongOrNull() }
                 _currentSong.value = song
                 _currentPosition.value = 0L
                 _isTransitioning.value = true
-                Log.d("MEDIA", "onMediaItemTransition: $reason")
-
-                _mediaChanged.update { it + 1 }
             }
 
             override fun onPlaybackStateChanged(state: Int) {
@@ -145,10 +142,6 @@ class MusicViewModel(
                 super.onRepeatModeChanged(repeatMode)
                 _repeatMode.value = repeatMode
             }
-
-            override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-                _isShuffled.value = shuffleModeEnabled
-            }
         })
     }
 
@@ -161,7 +154,15 @@ class MusicViewModel(
                 initialValue = emptyList()
             )
 
-//    fun createPlaylist(songs: List<Song> , index: Int) {
+    fun createPlaylist(songs: List<Song>, index: Int) {
+        val mediaItems = songs.map { it.toMediaItem() }
+        mediaController?.setMediaItems(mediaItems, index, 0)
+    }
+
+    fun play(songs: List<Song>, index: Int) {
+        _originalQueue.value = songs
+        _queue.value = _originalQueue.value
+        createPlaylist(songs, index)
 //        val mediaItems = songs.map { song ->
 //
 //            MediaItem.Builder()
@@ -176,26 +177,9 @@ class MusicViewModel(
 //                )
 //                .build()
 //        }
+//
 //        mediaController?.setMediaItems(mediaItems, index, 0)
-//    }
-    fun play(songs: List<Song>, index: Int) {
-        val mediaItems = songs.map { song ->
-
-            MediaItem.Builder()
-                .setMediaId(song.id.toString()) // Use the song ID as the Media ID
-                .setUri(song.filePath)
-                .setMediaMetadata(
-                    MediaMetadata.Builder()
-                        .setTitle(song.title)
-                        .setArtist(song.artist)
-                        // You can add other useful metadata here if needed
-                        .build()
-                )
-                .build()
-        }
-
-        mediaController?.setMediaItems(mediaItems, index, 0)
-        mediaController?.shuffleModeEnabled = isShuffled.value
+//        mediaController?.shuffleModeEnabled = isShuffled.value
         mediaController?.prepare()
         mediaController?.play()
     }
@@ -231,9 +215,38 @@ class MusicViewModel(
     }
 
     fun shuffleMode() {
-        _isShuffled.value = !_isShuffled.value
-        mediaController?.shuffleModeEnabled = _isShuffled.value
+        mediaController?.let { player ->
+            val currentIndex = player.currentMediaItemIndex
+            val count = player.mediaItemCount
+            _isShuffled.value = !_isShuffled.value
+            if (_isShuffled.value) {
+                _shuffledQueue.value = _originalQueue.value.shuffled()
+                if (currentIndex + 1 < count) {
+                    if (currentIndex != 0) {
+                        player.removeMediaItems(0, currentIndex)
+                    }
+                    player.removeMediaItems(currentIndex + 1, count)
+                }
+                _queue.value = (listOf(_currentSong.value) + _shuffledQueue.value) as List<Song>
+                player.addMediaItems(1, _shuffledQueue.value.map { it.toMediaItem() })
+            } else {
+                val songId = player.currentMediaItem?.mediaId?.toLong()
+                val songIndex =
+                    _originalQueue.value.indexOf(_originalQueue.value.find { it.id == songId })
+                if (currentIndex + 1 < count) {
+                    if (currentIndex != 0) {
+                        player.removeMediaItems(0, currentIndex)
+                    }
+                    player.removeMediaItems(currentIndex + 1, count)
+                }
+                player.addMediaItems(_originalQueue.value.map { it.toMediaItem() })
+                player.removeMediaItem(songIndex + 1)
+                player.moveMediaItem(0, songIndex)
+                _queue.value = _originalQueue.value
+            }
+        }
     }
+
 
     fun toggleRepeatMode() {
         val nextMode = when (_repeatMode.value) {
@@ -253,7 +266,16 @@ class MusicViewModel(
         mediaController?.release()
     }
 
-
+    fun Song.toMediaItem(): MediaItem =
+        MediaItem.Builder()
+            .setMediaId(id.toString())
+            .setUri(filePath)
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setTitle(title)
+                    .setArtist(artist)
+                    .build()
+            ).build()
 }
 
 
