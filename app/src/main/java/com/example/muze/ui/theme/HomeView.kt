@@ -196,6 +196,7 @@ fun HomeContent(
 
             ) { padding ->
 
+
             LazyColumn(modifier = Modifier.padding(padding)) {
                 items(songs.value) { song ->
                     SongItem(
@@ -203,6 +204,11 @@ fun HomeContent(
                             viewModel.play(songs.value, songs.value.indexOf(song))
                         }, currentSong = currentSong
                     )
+                }
+                if (currentSong != null) {
+                    item {
+                        Spacer(modifier = Modifier.height(71.dp))
+                    }
                 }
             }
         }
@@ -223,10 +229,11 @@ fun HomeContent(
                         .fillMaxWidth()
                         .padding(8.dp),
 
-                    horizontalArrangement = Arrangement.SpaceAround,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
+                        modifier = Modifier.weight(0.75f),
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -236,16 +243,16 @@ fun HomeContent(
                             model = uri,
                             contentDescription = "",
                             modifier = Modifier
+                                .padding(end = 8.dp)
                                 .size(
                                     width = 55.dp,
                                     height = 55.dp
                                 )
                                 .clip(RoundedCornerShape(4.dp)),
                             contentScale = ContentScale.FillBounds,
-                            placeholder = painterResource(R.drawable.muze),
-                            error = painterResource(R.drawable.muze),
+                            placeholder = painterResource(R.drawable.muze__1_),
+                            error = painterResource(R.drawable.muze__1_),
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Text(
                                 text = song.title,
@@ -254,7 +261,7 @@ fun HomeContent(
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold
                                 ),
-                                overflow = TextOverflow.Clip,
+                                overflow = TextOverflow.Ellipsis,
                                 maxLines = 1,
                                 modifier = Modifier.width(220.dp)
                             )
@@ -266,7 +273,7 @@ fun HomeContent(
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold
                                 ),
-                                overflow = TextOverflow.Clip,
+                                overflow = TextOverflow.Ellipsis,
                                 maxLines = 1,
                                 modifier = Modifier.width(220.dp)
                             )
@@ -274,11 +281,11 @@ fun HomeContent(
                     }
 
                     Row(
+                        modifier = Modifier.weight(0.25f),
                         horizontalArrangement = Arrangement.End
                     ) {
                         IconButton(
                             onClick = {},
-                            modifier = Modifier.size(30.dp)
                         ) {
                             Icon(
                                 Icons.Default.Favorite,
@@ -295,7 +302,6 @@ fun HomeContent(
                                     viewModel.resume()
                                 }
                             },
-                            modifier = Modifier.size(30.dp)
                         ) {
                             Icon(
                                 imageVector = if (viewModel.isPlaying.collectAsState().value) Icons.Default.Pause else Icons.Default.PlayArrow,

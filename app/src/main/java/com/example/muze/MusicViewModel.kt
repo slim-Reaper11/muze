@@ -2,6 +2,7 @@ package com.example.muze
 
 import android.app.Application
 import android.util.Log
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,23 +21,24 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class MusicViewModel(
     application: Application,
-
     ) :
     AndroidViewModel(application) {
 
 
     private val controller = MusicController(application)
     private val repository = LocalMusicRepository(application)
-//    private val player = MusicPlayer(application)
 
     private var mediaController: MediaController? = null
+
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
+
 
 
     private val _currentSong = MutableStateFlow<Song?>(null)
@@ -52,16 +54,20 @@ class MusicViewModel(
 
     private val _isChanging = MutableStateFlow<Boolean>(false)
 
-
     private val _isShuffled = MutableStateFlow(false)
     val isShuffled: StateFlow<Boolean> = _isShuffled.asStateFlow()
 
-    private val _repeatMode =
-        MutableStateFlow(Player.REPEAT_MODE_OFF)
-
+    private val _repeatMode = MutableStateFlow(Player.REPEAT_MODE_OFF)
     val repeatMode: StateFlow<Int> = _repeatMode.asStateFlow()
 
     private val _isTransitioning = MutableStateFlow(false)
+
+    private val _mediaChanged = MutableStateFlow<Int>(0)
+    val mediaChanged: StateFlow<Int> = _mediaChanged.asStateFlow()
+
+    private val _playlist = MutableStateFlow<List<Song>>(emptyList())
+    val playlist : StateFlow<List<Song>> = _playlist.asStateFlow()
+
 
 
     init {
@@ -73,30 +79,6 @@ class MusicViewModel(
             },
             MoreExecutors.directExecutor()
         )
-
-//        player.onIsPlayingChanged = { playing ->
-//            _isPlaying.value = playing
-//        }
-//
-//        player.onMediaItemChanged = { mediaItem ->
-//            val songId = mediaItem?.mediaId?.toLongOrNull()
-//            val song = allSongs.value.find { it.id == songId }
-//            _currentSong.value = song
-//            _currentPosition.value = 0L
-//        }
-//
-//        player.onPlaybackStateChanged = { state ->
-//            _playerState.value = state
-//
-//            if (state == Player.STATE_READY) {
-//                // duration is now valid (we'll use this later)
-//                val duration = player.duration()
-//                _duration.value = duration
-//                // store it later when we add progress
-////                _currentPosition.value = 0L
-//
-//            }
-//        }
 
         viewModelScope.launch {
             while (isActive) {
@@ -123,23 +105,27 @@ class MusicViewModel(
                 mediaItem: MediaItem?,
                 reason: Int
             ) {
-                _isTransitioning.value = true
+
                 val songId = mediaItem?.mediaId?.toLongOrNull()
                 val song = allSongs.value.find { it.id == songId }
                 _currentSong.value = song
                 _currentPosition.value = 0L
+                _isTransitioning.value = true
+                Log.d("MEDIA", "onMediaItemTransition: $reason")
+
+                _mediaChanged.update { it + 1 }
             }
 
             override fun onPlaybackStateChanged(state: Int) {
                 _playerState.value = state
 
                 if (state == Player.STATE_READY) {
-                    _isTransitioning.value = false
                     // duration is now valid (we'll use this later)
                     val duration = mediaController?.duration
                     if (duration != null) {
                         _duration.value = duration
                     }
+                    _isTransitioning.value = false
                 }
 
             }
@@ -175,10 +161,22 @@ class MusicViewModel(
                 initialValue = emptyList()
             )
 
-
-    //        fun play(songs: List<Song>, index: Int) {
-//        player.playSong(songs, index)
-//        _isNotPaused.value = true
+//    fun createPlaylist(songs: List<Song> , index: Int) {
+//        val mediaItems = songs.map { song ->
+//
+//            MediaItem.Builder()
+//                .setMediaId(song.id.toString()) // Use the song ID as the Media ID
+//                .setUri(song.filePath)
+//                .setMediaMetadata(
+//                    MediaMetadata.Builder()
+//                        .setTitle(song.title)
+//                        .setArtist(song.artist)
+//                        // You can add other useful metadata here if needed
+//                        .build()
+//                )
+//                .build()
+//        }
+//        mediaController?.setMediaItems(mediaItems, index, 0)
 //    }
     fun play(songs: List<Song>, index: Int) {
         val mediaItems = songs.map { song ->
@@ -202,68 +200,23 @@ class MusicViewModel(
         mediaController?.play()
     }
 
-
-//    fun play(songs: List<Song>, index: Int) {
-//
-//        if (!playlistSet) {
-//            val mediaItems = songs.map { song ->
-//                MediaItem.Builder()
-//                    .setMediaId(song.id.toString())
-//                    .setUri(song.filePath)
-//                    .setMediaMetadata(
-//                        MediaMetadata.Builder()
-//                            .setTitle(song.title)
-//                            .setArtist(song.artist)
-//                            .build()
-//                    )
-//                    .build()
-//            }
-//
-//            mediaController?.setMediaItems(mediaItems)
-//            mediaController?.prepare()
-//            mediaController?.repeatMode = _repeatMode.value
-//            playlistSet = true
-//        }
-//
-//        mediaController?.seekTo(index, 0)
-//        mediaController?.play()
-//        _isNotPaused.value = true
-//    }
-
-
-    //    fun pause() {
-//        player.pause()
-//        _isNotPaused.value = false
-//    }
     fun pause() {
         mediaController?.pause()
     }
 
-
-//    fun resume() {
-//        player.resume()
-//        _isNotPaused.value = true
-//    }
 
     fun resume() {
         mediaController?.play()
     }
 
 
-    //    fun nextSong() {
-//        player.nextSong()
-//    }
     fun nextSong() {
         mediaController?.seekToNext()
     }
 
-    //    fun previousSong() {
-//        player.previousSong()
-//    }
     fun previousSong() {
         mediaController?.seekToPrevious()
     }
-
 
     fun updateCurrentPosition(position: Long) {
         _currentPosition.value = position
