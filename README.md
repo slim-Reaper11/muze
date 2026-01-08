@@ -5,14 +5,28 @@ A modern Android music player built using Jetpack Compose.
 Features:
 
 ✨ Play local audio files
+
+
 ⏯️ Play / Pause / Next / Previous controls
+
+
 🔀 Custom Shuffle & repeat support
+
+
 📃 Queue management
+
+
 🎧 Background playback
 
 🎵  Media Playback Using ExoPlayer(Media3)
-    Background playback using MediaSession
+
+
+Background playback using MediaSession
+
+
 using meshGradiant for reactive background
+
+
 https://github.com/om252345/composemeshgradient
 
 🔄 Architecture
